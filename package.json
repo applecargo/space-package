@@ -1,17 +1,22 @@
 {
-  "name": "udp-sync",
+  "name": "space-package-server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
   },
-  "author": "Dooho Yi",
+  "keywords": [],
+  "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.15.2",
-    "http": "0.0.0",
-    "osc": "2.2.0",
-    "socket.io": "^1.7.3"
+    "express": "^4.16.3",
+    "fs": "0.0.1-security",
+    "http-proxy": "^1.17.0",
+    "https": "^1.0.0",
+    "osc": "^2.2.3",
+    "socket.io": "^2.1.1",
+    "socket.io-client": "^2.1.1"
   }
 }

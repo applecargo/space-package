@@ -2,59 +2,59 @@
 
 //NOTE: option (1) - https server (8443) + redirection 8080 to 8443
 
-//prepare credentials & etc
-var fs = require('fs');
-var https = require('https');
-var privateKey = fs.readFileSync('/etc/letsencrypt/live/choir.run/privkey.pem', 'utf8');
-var certificate = fs.readFileSync('/etc/letsencrypt/live/choir.run/fullchain.pem', 'utf8');
-var credentials = {
-  key: privateKey,
-  cert: certificate
-};
-
-//https WWW server @ port 8443
-var express = require('express');
-var app = express();
-var httpsWebServer = https.createServer(credentials, app).listen(8443, function() {
-  console.log('[express] listening on *:8443');
-});
-
-//http Redirection server @ port 8080
-//  ==> Don't get why this works.. all others not. ==> https://stackoverflow.com/a/23283173
-var http = require('http');
-var httpApp = express();
-var httpRouter = express.Router();
-httpApp.use('*', httpRouter);
-httpRouter.get('*', function(req, res) {
-  var host = req.get('Host');
-  // replace the port in the host
-  host = host.replace(/:\d+$/, ":" + app.get('port'));
-  // determine the redirect destination
-  var destination = ['https://', host, req.url].join('');
-  return res.redirect(destination);
-});
-var httpServer = http.createServer(httpApp);
-httpServer.listen(8080);
-
-//https socket.io server @ port 8443 (same port as WWW service)
-var io = require('socket.io')(httpsWebServer, {
-  'pingInterval': 1000,
-  'pingTimeout': 3000
-});
-
-// //NOTE: option (2) - simple http dev server (5500)
-
-// var http = require('http');
+// //prepare credentials & etc
+// var fs = require('fs');
+// var https = require('https');
+// var privateKey = fs.readFileSync('/etc/letsencrypt/live/choir.run/privkey.pem', 'utf8');
+// var certificate = fs.readFileSync('/etc/letsencrypt/live/choir.run/fullchain.pem', 'utf8');
+// var credentials = {
+//   key: privateKey,
+//   cert: certificate
+// };
+//
+// //https WWW server @ port 8443
 // var express = require('express');
 // var app = express();
-// var httpServer = http.createServer(app);
-// httpServer.listen(5500);
-
-// //http socket.io server @ port 5500 (same port as WWW service)
-// var io = require('socket.io')(httpServer, {
+// var httpsWebServer = https.createServer(credentials, app).listen(8443, function() {
+//   console.log('[express] listening on *:8443');
+// });
+//
+// //http Redirection server @ port 8080
+// //  ==> Don't get why this works.. all others not. ==> https://stackoverflow.com/a/23283173
+// var http = require('http');
+// var httpApp = express();
+// var httpRouter = express.Router();
+// httpApp.use('*', httpRouter);
+// httpRouter.get('*', function(req, res) {
+//   var host = req.get('Host');
+//   // replace the port in the host
+//   host = host.replace(/:\d+$/, ":" + app.get('port'));
+//   // determine the redirect destination
+//   var destination = ['https://', host, req.url].join('');
+//   return res.redirect(destination);
+// });
+// var httpServer = http.createServer(httpApp);
+// httpServer.listen(8080);
+//
+// //https socket.io server @ port 8443 (same port as WWW service)
+// var io = require('socket.io')(httpsWebServer, {
 //   'pingInterval': 1000,
 //   'pingTimeout': 3000
 // });
+
+//NOTE: option (2) - simple http dev server (process.env.PORT)
+
+var http = require('http');
+var express = require('express');
+var app = express();
+var httpServer = http.createServer(app);
+httpServer.listen(process.env.PORT || 5000);
+
+//http socket.io server @ port process.env.PORT (same port as WWW service)
+var io = require('socket.io')(httpServer, {
+  'pingInterval': 1000,
+  'pingTimeout': 3000
+});
 
 //express configuration
 app.use(express.static('public'));
@@ -111,7 +111,7 @@ io.on('connection', function(socket) {
 // var express = require('express');
 // var http = require('http');
 
-// //// socket.io service - for Instruments clients (:5500)
+// //// socket.io service - for Instruments clients (:process.env.PORT)
 // var ioInstApp = express();
 // var ioInstServer = http.Server(ioInstApp);
 // var ioInst = require('socket.io')(ioInstServer, {'pingInterval': 1000, 'pingTimeout': 3000});
@@ -139,8 +139,8 @@ io.on('connection', function(socket) {
 //     });
 // });
 
-// ioInstServer.listen(5500, function(){
-//     console.log('[socket.io] listening on *:5500');
+// ioInstServer.listen(process.env.PORT, function(){
+//     console.log('[socket.io] listening on *:process.env.PORT');
 // });
 
 // // //// osc.js/udp service
